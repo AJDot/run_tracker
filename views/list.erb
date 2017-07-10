@@ -1,0 +1,14 @@
+<h3 class="run name">Name</h3>
+<h3 class="run distance">Distance</h3>
+<h3 class="run duration">Duration</h3>
+<h3 class="run date">Date</h3>
+<h3 class="run time">Time</h3>
+<% sort_by_attribute(@runs, :id).each do |run| %>
+  <div>
+    <div class="run name"><%= run[:name] %></div>
+    <div class="run distance"><%= run[:distance] %></div>
+    <div class="run duration"><%= run[:duration] %></div>
+    <div class="run date"><%= run[:date] %></div>
+    <div class="run time"><%= run[:time] %></div>
+  </div>
+<% end %>

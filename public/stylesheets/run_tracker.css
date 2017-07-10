@@ -1,0 +1,135 @@
+/*
+#227722
+#195959
+#952A2A
+#955B2A
+*/
+
+a {
+  font-weight: bold;
+  color: #3f3f3f;
+  text-decoration: none;
+}
+
+body {
+  font-family: 'Raleway', sans-serif;
+  max-width: 1000px;
+
+  padding: 0 10px 40px 10px;
+  margin: 0 auto;
+}
+
+header {
+  max-width: 800px;
+  padding: 40px 0;
+  margin: 0 auto;
+}
+
+header h1 {
+  font-family: 'Lato', sans-serif;
+  font-size: 30px;
+  color: #227722;
+}
+
+header > h1 > a {
+  font-family: 'Lato', sans-serif;
+  font-size: 30px;
+  color: #227722;
+}
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+table {
+  max-width: 1000px;
+  padding-bottom: 30px;
+}
+
+form input {
+  padding: 10px 30px;
+  margin: 5px 0 15px 0;
+  font: normal 28px 'Raleway', sans-serif;
+}
+
+form input[type="submit"] {
+  height: 50px;
+  padding: 10px 20px;
+  margin: 0 40px 0 0;
+  font: normal 20px 'Raleway', sans-serif;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  background: #227722;
+  cursor: pointer;
+}
+
+form fieldset {
+  display: block;
+  width: 50%;
+  border: 2px groove;
+  border-radius: 5px;
+  padding: .55em .75em .625em .75em;
+}
+
+a.action {
+  height: 50px;
+  padding: 10px 20px;
+  margin: 0 40px 0 0;
+  font: normal 20px 'Raleway', sans-serif;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  -webkit-transition: color 200ms ease;
+  -moz-transition: color 200ms ease;
+  -o-transition: color 200ms ease;
+}
+
+a.action:hover {
+  color: #227722;
+}
+
+.run {
+  display: inline-block;
+  font-size: 18px;
+}
+
+.run.name {
+  width: 35%;
+}
+
+.run.distance {
+  width: 15%;
+  text-align: right;
+}
+
+.run.duration {
+  width: 15%;
+  text-align: right;
+}
+
+.run.date {
+  width: 15%;
+  text-align: center;
+}
+
+.run.time {
+  width: 15%;
+  text-align: center;
+}
+
+.flash {
+  padding: 30px 20px;
+  margin: 10px 0;
+  font: normal 18px 'Raleway', sans-serif;
+}
+
+.flash.error {
+  color: #ffffff;
+  background: #952A2A;
+}
+
+.flash.success {
+  color: #ffffff;
+  background: #195959;
+}
