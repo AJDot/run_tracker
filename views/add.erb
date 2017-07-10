@@ -4,29 +4,31 @@
     <div>
       <label for="name">Name:</label>
       <br>
-      <input name="name" type="text">
+      <input name="name" type="text" value="<%= params[:name] %>">
     </div>
     <div>
       <label for="distance">Distance:</label>
       <br>
-      <input name="distance" type="number" step="0.01" min="0" placeholder="miles">
+      <input name="distance" type="number" step="0.01" min="0" max="1000" placeholder="miles" value="<%= params[:distance] %>">
     </div>
     <div>
       <label for="duration">Duration:</label>
       <br>
-      <input name="duration" type="text" placeholder="hh:mm:ss">
+      <input name="duration" type="text" placeholder="hh:mm:ss" value="<%= params[:duration] %>">
     </div>
     <div>
       <label for="date">Date:</label>
       <br>
-      <input name="date" type="date" max="<%= Time.now.stamp("2017-07-15") %>" >
+      <input name="date" type="date" max="<%= Time.now.stamp("2017-07-15") %>" required value="<%= params[:date] %>">
     </div>
     <div>
       <label for="time">Time</label>
       <br>
-      <input name="time" type="time" >
+      <input name="time" type="time" required value="<%= params[:time] %>">
     </div>
-    <input type="submit" value="Add">
-    <a class="action" href="/">Cancel</a>
+    <fieldset class="actions">
+      <input type="submit" value="Add">
+      <a href="/">Cancel</a>
+    </fieldset>
   </fieldset>
 </form>

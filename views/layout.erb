@@ -10,7 +10,16 @@
 <body>
   <header>
     <h1><a href="/">Run Tracker</a></h1>
+    <div class="actions">
+      <%= yield_content :header_links %>
+    </div>
   </header>
+
+  <% if session[:success] %>
+    <div class="flash success">
+      <p><%= session.delete(:success) %></p>
+    </div>
+  <% end %>
 
   <% if session[:error] %>
     <div class="flash error">

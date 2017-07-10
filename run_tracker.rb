@@ -3,6 +3,7 @@ require "stamp"
 require "yaml"
 require "sinatra"
 require "sinatra/reloader" if development?
+require "sinatra/content_for"
 require "tilt/erubis"
 
 configure do
@@ -11,7 +12,11 @@ configure do
 end
 
 before do
-  session[:runs] = YAML.load_file(runs_path) || []
+  session[:runs] = if File.exist?(runs_path)
+    YAML.load_file(runs_path)
+  else
+    []
+  end
 end
 
 def data_path
@@ -67,6 +72,28 @@ def error_for_duration(duration)
   end
 end
 
+def error_for_date(date)
+  # Proper date format
+  unless date =~ /\A\d{4}-\d{2}-\d{2}\z/
+    "Date must be of the form mm/dd/yyyy."
+  end
+end
+
+def error_for_time(time)
+  # Proper time format
+  unless time =~ /\A(?:[01][0-9]|2[0-4]):[0-5][0-9]\z/
+    "Time must be of the form hh:mm AM/PM."
+  end
+end
+
+def error_for_add_run_form(run)
+  error_for_name(run[:name]) ||
+  error_for_distance(run[:distance]) ||
+  error_for_duration(run[:duration]) ||
+  error_for_date(run[:date]) ||
+  error_for_time(run[:time])
+end
+
 def valid_string?(string, regex)
   !string[regex].nil?
 end
@@ -85,7 +112,6 @@ def format_duration(duration)
 end
 
 get "/" do
-  # session[:runs] ||= []
   erb :index
 end
 
@@ -99,23 +125,22 @@ get "/add" do
 end
 
 post "/add" do
-  name = params[:name]
-  distance = params[:distance]
-  duration = format_duration(params[:duration])
-  date = params[:date]
-  time = params[:time]
+  new_run = {
+    id:       next_id,
+    name:     params[:name],
+    distance: params[:distance],
+    duration: format_duration(params[:duration]),
+    date:     params[:date],
+    time:     params[:time]
+  }
 
-
-  name_error = error_for_name(name)
-  distance_error = error_for_distance(distance)
-  duration_error = error_for_duration(duration)
-
-  if name_error || distance_error || duration_error
-    session[:error] = name_error || distance_error || duration_error
+  if error_for_add_run_form(new_run)
+    session[:error] = error_for_add_run_form(new_run)
     erb :add
   else
-    session[:runs] << { id: next_id, name: name, distance: distance, duration: duration, date: date, time: time };
+    session[:runs] << new_run
     save_runs
+    session[:success] = "#{new_run[:name]} was added."
     redirect "/list"
   end
 end

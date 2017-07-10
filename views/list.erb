@@ -4,11 +4,15 @@
 <h3 class="run date">Date</h3>
 <h3 class="run time">Time</h3>
 <% sort_by_attribute(@runs, :id).each do |run| %>
-  <div>
-    <div class="run name"><%= run[:name] %></div>
-    <div class="run distance"><%= run[:distance] %></div>
-    <div class="run duration"><%= run[:duration] %></div>
-    <div class="run date"><%= run[:date] %></div>
-    <div class="run time"><%= run[:time] %></div>
-  </div>
+  <ul>
+    <li class="run name"><%= run[:name] %></li>
+    <li class="run distance"><%= run[:distance] %></li>
+    <li class="run duration"><%= run[:duration] %></li>
+    <li class="run date"><%= run[:date] %></li>
+    <li class="run time"><%= run[:time] %></li>
+  </ul>
+<% end %>
+
+<% content_for :header_links do %>
+  <a href="/add">Add Run</a>
 <% end %>

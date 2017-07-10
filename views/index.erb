@@ -19,7 +19,8 @@
     <td>37:0</td>
   </tr>
 </table>
-<div>
-  <a class="action" href="/list">View Runs</a>
-  <a class="action" href="/add">Add Run</a>
-</div>
+
+<% content_for :header_links do %>
+  <a href="/list">View Runs</a>
+  <a href="/add">Add Run</a>
+<% end %>
