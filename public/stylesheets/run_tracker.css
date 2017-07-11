@@ -5,8 +5,17 @@
 #955B2A
 */
 
+body {
+  font-family: 'Raleway', sans-serif;
+  max-width: 1000px;
+
+  padding: 0 10px 40px 10px;
+  margin: 0 auto;
+
+  color: #3f3f3f;
+}
+
 a {
-  font-weight: bold;
   color: #3f3f3f;
   text-decoration: none;
   -webkit-transition: color 200ms ease;
@@ -16,14 +25,6 @@ a {
 
 a:hover {
   color: #227722;
-}
-
-body {
-  font-family: 'Raleway', sans-serif;
-  max-width: 1000px;
-
-  padding: 0 10px 40px 10px;
-  margin: 0 auto;
 }
 
 header {
@@ -104,13 +105,12 @@ form fieldset {
   padding: .55em .75em .625em .75em;
 }
 
-form fieldset.actions {
+form .actions {
   width: initial;
   border: none;
 }
 
 .run {
-  position: relative;
   margin-bottom: 20px;
 }
 
@@ -149,19 +149,24 @@ form fieldset.actions {
 }
 
 .run > form {
+  position: relative;
   display: inline-block;
-  position: absolute;
 }
 
-.run > form > .delete {
-  /*padding: 2px 5px;*/
-  /*color: #ffffff;*/
-  /*background: #952A2A;*/
+.run > form > button {
+  color: #3f3f3f;
+}
+
+.run > form {
+  font: normal 18px 'Raleway', sans-serif;
+}
+
+.run > form > .action {
+  display: inline-block;
   background: #ffffff;
   margin-bottom: 5px;
   font: normal 18px 'Raleway', sans-serif;
   border: none;
-  /*border-radius: 3px;*/
   text-decoration: none;
   cursor: pointer;
   -webkit-transition: border-bottom 200ms ease,
@@ -178,6 +183,12 @@ form fieldset.actions {
 .run > form > .delete:hover {
   color: #952a2a;
   border-bottom: 5px solid #952a2a;
+  margin-bottom: 0;
+}
+
+.run > form > .edit:hover {
+  color: #195959;
+  border-bottom: 5px solid #195959;
   margin-bottom: 0;
 }
 

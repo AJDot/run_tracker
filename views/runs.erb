@@ -13,11 +13,12 @@
     <li class="date"><%= run[:date] %></li>
     <li class="time"><%= run[:time] %></li>
     <form method="post" action="/<%= run[:id] %>/delete">
-      <button class="delete" type="submit">Delete</button>
+      <a class="action edit" href="/runs/<%= run[:id] %>/edit">Edit</a>
+      <button class="action delete" type="submit">Delete</button>
     </form>
   </ul>
 <% end %>
 
 <% content_for :header_links do %>
-  <a href="/add">Add Run</a>
+  <a href="/new">Add Run</a>
 <% end %>

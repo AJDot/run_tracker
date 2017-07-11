@@ -37,9 +37,13 @@ class RunTrackerTest < Minitest::Test
     last_request.env["rack.session"]
   end
 
-  def add_run_to_file(name, distance, duration, date, time)
-    run_data = {name: name, distance: distance, duration: duration, date: date, time: time}
-    session[:runs] << run_data
+  def add_run_to_file(id, name, distance, duration, date, time)
+    run_data = {id: id, name: name, distance: distance, duration: duration, date: date, time: time}
+    if session[:runs]
+      session[:runs] << run_data
+    else
+      session[:runs] = [run_data]
+    end
     File.write(runs_path, session[:runs].to_yaml)
   end
 
@@ -53,12 +57,13 @@ class RunTrackerTest < Minitest::Test
 
   def test_viewing_view_runs
     get "/"
-    add_run_to_file('run1', '1', '01:02:03', '2017-07-10', '17:15')
+    add_run_to_file(1, 'run1', '1', '01:02:03', '2017-07-10', '17:15')
 
-    get "/list"
+    get "/runs"
 
     assert_equal 200, last_response.status
-    assert_includes last_response.body, "Name</h3>"
+    assert_includes last_response.body, "Name"
+    assert_includes last_response.body, "run1"
 
   end
 end

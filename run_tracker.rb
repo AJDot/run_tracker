@@ -40,14 +40,18 @@ def save_runs
   File.write(runs_path, session[:runs].to_yaml)
 end
 
-def sort_by_attribute(runs, attribute)
-  runs.sort_by { |run| run[attribute] }
+def load_run(id)
+  run = session[:runs].find { |run| run[:id] == id } if id
+  return run if run
+
+  session[:error] = "The specified run was not found."
+  redirect "/"
 end
 
-def error_for_name(name)
+def error_for_name(name, id)
   if !(1..100).cover? name.size
     "Run name must be between 1 and 100 characters."
-  elsif session[:runs].any? { |run| run[:name] == name }
+  elsif session[:runs].any? { |run| (run[:name] == name) && (run[:id] != id) }
     "Run name must be unique."
   end
 end
@@ -87,7 +91,7 @@ def error_for_time(time)
 end
 
 def error_for_add_run_form(run)
-  error_for_name(run[:name]) ||
+  error_for_name(run[:name], run[:id]) ||
   error_for_distance(run[:distance]) ||
   error_for_duration(run[:duration]) ||
   error_for_date(run[:date]) ||
@@ -111,20 +115,30 @@ def format_duration(duration)
   durations.join(":")
 end
 
+helpers do
+  def sort_by_attribute(runs, attribute)
+    runs.sort_by { |run| run[attribute] }
+  end
+end
+
+# view index page - summary info
 get "/" do
   erb :index
 end
 
-get "/list" do
+# view list of runs
+get "/runs" do
   @runs = session[:runs]
-  erb :list
+  erb :runs
 end
 
-get "/add" do
-  erb :add
+# view add new run page
+get "/new" do
+  erb :new
 end
 
-post "/add" do
+# add new run
+post "/new" do
   new_run = {
     id:       next_id,
     name:     params[:name],
@@ -141,14 +155,45 @@ post "/add" do
     session[:runs] << new_run
     save_runs
     session[:success] = "#{new_run[:name]} was added."
-    redirect "/list"
+    redirect "/runs"
   end
 end
 
+# view edit run page
+get "/runs/:id/edit" do
+  @run = load_run(params[:id].to_i)
+  erb :edit
+end
+
+# update run
+post "/runs/:id" do
+  @run = {
+    id:       params[:id].to_i,
+    name:     params[:name],
+    distance: params[:distance],
+    duration: format_duration(params[:duration]),
+    date:     params[:date],
+    time:     params[:time]
+  }
+
+  if error_for_add_run_form(@run)
+    session[:error] = error_for_add_run_form(@run)
+    erb :edit
+  else
+    run_to_edit = load_run(params[:id].to_i)
+    session[:runs].delete(run_to_edit)
+    session[:runs] << @run
+    save_runs
+    session[:success] = "#{@run[:name]} was updated."
+    redirect "/runs"
+  end
+end
+
+# delete run
 post "/:id/delete" do
-  run_to_delete = session[:runs].find { |run| run[:id] == params[:id].to_i }
+  run_to_delete = load_run(params[:id].to_i)
   session[:runs].delete(run_to_delete)
   save_runs
   session[:success] = "#{run_to_delete[:name]} was deleted."
-  redirect "/list"
+  redirect "/runs"
 end
