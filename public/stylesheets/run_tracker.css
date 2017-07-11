@@ -46,9 +46,16 @@ body header .actions {
 }
 
 body header .actions a {
-  padding: 10px 20px;
-  margin: 0 40px 0 0;
+  padding: 5px 20px;
   cursor: pointer;
+  -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+}
+
+body header .actions a:hover {
+  border-bottom: 5px solid #3f3f3f;
+  margin-bottom: 35px;
 }
 
 main {
@@ -103,32 +110,75 @@ form fieldset.actions {
 }
 
 .run {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.run.heading {
+  margin: 0;
+  font-weight: bold;
+}
+
+.run > li {
   display: inline-block;
   font-size: 18px;
 }
 
-.run.name {
-  width: 35%;
+.run > .name {
+  width: 20%;
 }
 
-.run.distance {
+.run > .distance {
   width: 15%;
   text-align: right;
 }
 
-.run.duration {
+.run > .duration {
   width: 15%;
   text-align: right;
 }
 
-.run.date {
+.run > .date {
   width: 15%;
   text-align: center;
 }
 
-.run.time {
+.run > .time {
   width: 15%;
   text-align: center;
+}
+
+.run > form {
+  display: inline-block;
+  position: absolute;
+}
+
+.run > form > .delete {
+  /*padding: 2px 5px;*/
+  /*color: #ffffff;*/
+  /*background: #952A2A;*/
+  background: #ffffff;
+  margin-bottom: 5px;
+  font: normal 18px 'Raleway', sans-serif;
+  border: none;
+  /*border-radius: 3px;*/
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-transition: border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+  -moz-transition:    border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+  -o-transition:      border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+}
+
+.run > form > .delete:hover {
+  color: #952a2a;
+  border-bottom: 5px solid #952a2a;
+  margin-bottom: 0;
 }
 
 .flash {

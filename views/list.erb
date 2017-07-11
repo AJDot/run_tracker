@@ -1,15 +1,20 @@
-<h3 class="run name">Name</h3>
-<h3 class="run distance">Distance</h3>
-<h3 class="run duration">Duration</h3>
-<h3 class="run date">Date</h3>
-<h3 class="run time">Time</h3>
+<ul class="run heading">
+  <li class="name">Name</li>
+  <li class="distance">Distance</li>
+  <li class="duration">Duration</li>
+  <li class="date">Date</li>
+  <li class="time">Time</li>
+</ul>
 <% sort_by_attribute(@runs, :id).each do |run| %>
-  <ul>
-    <li class="run name"><%= run[:name] %></li>
-    <li class="run distance"><%= run[:distance] %></li>
-    <li class="run duration"><%= run[:duration] %></li>
-    <li class="run date"><%= run[:date] %></li>
-    <li class="run time"><%= run[:time] %></li>
+  <ul class="run">
+    <li class="name"><%= run[:name] %></li>
+    <li class="distance"><%= run[:distance] %></li>
+    <li class="duration"><%= run[:duration] %></li>
+    <li class="date"><%= run[:date] %></li>
+    <li class="time"><%= run[:time] %></li>
+    <form method="post" action="/<%= run[:id] %>/delete">
+      <button class="delete" type="submit">Delete</button>
+    </form>
   </ul>
 <% end %>
 

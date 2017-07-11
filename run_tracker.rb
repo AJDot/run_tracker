@@ -144,3 +144,11 @@ post "/add" do
     redirect "/list"
   end
 end
+
+post "/:id/delete" do
+  run_to_delete = session[:runs].find { |run| run[:id] == params[:id].to_i }
+  session[:runs].delete(run_to_delete)
+  save_runs
+  session[:success] = "#{run_to_delete[:name]} was deleted."
+  redirect "/list"
+end
