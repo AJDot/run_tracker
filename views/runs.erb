@@ -21,4 +21,10 @@
 
 <% content_for :header_links do %>
   <a href="/new">Add Run</a>
+  <a href="/data/runs.yml" download="runs.yml">Download Runs</a>
+  <form id="upload" method="post" action="/upload" enctype="multipart/form-data">
+    <button type="submit">Upload</button>
+    <input type="file" name="file" id="file" accept=".yml">
+    <!-- <label for="file">Choose a file</label> -->
+  </form>
 <% end %>

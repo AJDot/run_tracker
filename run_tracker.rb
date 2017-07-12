@@ -23,7 +23,7 @@ def data_path
   if ENV["RACK_ENV"] == "test"
     File.expand_path("../test/data", __FILE__)
   else
-    File.expand_path("../data", __FILE__)
+    File.expand_path("../public/data", __FILE__)
   end
 end
 
@@ -150,7 +150,7 @@ post "/new" do
 
   if error_for_add_run_form(new_run)
     session[:error] = error_for_add_run_form(new_run)
-    erb :add
+    erb :new
   else
     session[:runs] << new_run
     save_runs
@@ -196,4 +196,27 @@ post "/:id/delete" do
   save_runs
   session[:success] = "#{run_to_delete[:name]} was deleted."
   redirect "/runs"
+end
+
+# upload runs
+post "/upload" do
+  if params[:file]
+    filename = params[:file][:filename]
+    file_location = params[:file][:tempfile].path
+
+    if File.extname(file_location) == ".yml"
+      FileUtils.copy(file_location, runs_path)
+      session[:success] = "#{filename} was uploaded."
+
+      redirect "/runs"
+    else
+      @runs = session[:runs]
+      session[:error] = "Unable to upload. Currently only .yml files are supported."
+      erb :runs
+    end
+  else
+    @runs = session[:runs]
+    session[:error] = "Must provide a .yml file for upload."
+    erb :runs
+  end
 end

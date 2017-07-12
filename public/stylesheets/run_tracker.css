@@ -40,14 +40,14 @@ header > h1 > a {
 }
 
 body header .actions {
-  display: inline-block;
-  width: 50%;
   padding: 20px 0 0 0;
-  font-size: normal 20px 'Raleway';
 }
 
-body header .actions a {
-  padding: 5px 20px;
+header .actions * {
+  display: inline-block;
+  padding: 5px 20px 5px 5px;
+  margin-bottom: 5px;
+  font-size: 16px;
   cursor: pointer;
   -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
   -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
@@ -56,7 +56,7 @@ body header .actions a {
 
 body header .actions a:hover {
   border-bottom: 5px solid #3f3f3f;
-  margin-bottom: 35px;
+  margin-bottom: 0;
 }
 
 main {
@@ -69,14 +69,16 @@ table {
   padding-bottom: 30px;
 }
 
-form input {
+#new input,
+#edit input {
   width: 100%;
-  padding: 10px 30px;
+  padding: 5px 15px;
   margin: 5px 0 15px 0;
-  font: normal 28px 'Raleway', sans-serif;
+  font: normal 18px 'Raleway', sans-serif;
 }
 
-form input[type="submit"] {
+#new input[type="submit"],
+#edit input[type="submit"] {
   width: initial;
   height: 50px;
   padding: 10px 20px;
@@ -92,20 +94,23 @@ form input[type="submit"] {
   -o-transition: color 200ms ease, background 200ms ease;;
 }
 
-form input[type="submit"]:hover {
+#new input[type="submit"]:hover,
+#edit input[type="submit"]:hover {
   background: #3E933E;
   color: #3f3f3f;
 }
 
-form fieldset {
+#new fieldset,
+#edit fieldset {
   display: block;
-  width: 50%;
+  width: 30%;
   border: 2px groove;
   border-radius: 5px;
   padding: .55em .75em .625em .75em;
 }
 
-form .actions {
+#new .actions,
+#edit .actions {
   width: initial;
   border: none;
 }
@@ -149,20 +154,17 @@ form .actions {
 }
 
 .run > form {
-  position: relative;
+  /*position: relative;*/
   display: inline-block;
-}
-
-.run > form > button {
-  color: #3f3f3f;
-}
-
-.run > form {
   font: normal 18px 'Raleway', sans-serif;
 }
 
-.run > form > .action {
-  display: inline-block;
+.run > button {
+  color: #3f3f3f;
+}
+
+.run .action {
+  /*display: inline-block;*/
   background: #ffffff;
   margin-bottom: 5px;
   font: normal 18px 'Raleway', sans-serif;
@@ -180,15 +182,66 @@ form .actions {
                       color 200ms ease;
 }
 
-.run > form > .delete:hover {
+.run .delete:hover {
   color: #952a2a;
   border-bottom: 5px solid #952a2a;
   margin-bottom: 0;
 }
 
-.run > form > .edit:hover {
+.run .edit:hover {
   color: #195959;
   border-bottom: 5px solid #195959;
+  margin-bottom: 0;
+}
+
+#upload {
+  /*display: inline-block;*/
+}
+
+#upload * {
+  /*font: normal 20px 'Raleway', san-serif;*/
+  border: none;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+}
+
+#upload input[type="file"] {
+  cursor: pointer;
+}
+
+/*#upload input[type="file"]:hover + label {
+  color: #227722;
+  border-bottom: 5px solid #3f3f3f;
+  margin-bottom: 0;
+  cursor: pointer;
+}*/
+
+#upload button {
+  display: inline-block;
+  color: #3f3f3f;
+  background: #ffffff;
+  /*margin-bottom: 5px;*/
+  font: normal 16px 'Raleway', sans-serif;
+  border: none;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-transition: border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+  -moz-transition:    border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+  -o-transition:      border-bottom 200ms ease,
+                      margin-bottom 200ms ease,
+                      color 200ms ease;
+}
+
+#upload button:hover {
+  color: #227722;
+  border-bottom: 5px solid #3f3f3f;
   margin-bottom: 0;
 }
 
