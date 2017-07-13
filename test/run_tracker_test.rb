@@ -27,27 +27,17 @@ class RunTrackerTest < Minitest::Test
     FileUtils.rm_rf(data_path)
   end
 
-  def create_document(name, content = "")
-    File.open(File.join(data_path, name), "w") do |file|
-      file.write(content)
-    end
-  end
+  # def create_document(name, content = "")
+  #   File.open(File.join(data_path, name), "w") do |file|
+  #     file.write(content)
+  #   end
+  # end
 
   def session
     last_request.env["rack.session"]
   end
 
-  def add_run_to_file(id, name, distance, duration, date, time)
-    run_data = {id: id, name: name, distance: distance, duration: duration, date: date, time: time}
-    if session[:runs]
-      session[:runs] << run_data
-    else
-      session[:runs] = [run_data]
-    end
-    File.write(runs_path, session[:runs].to_yaml)
-  end
-
-  def test_index
+  def test_viewing_index
     get "/"
 
     assert_equal 200, last_response.status
@@ -76,38 +66,80 @@ class RunTrackerTest < Minitest::Test
         :date: '2017-07-10'
         :time: '14:00'
     RUNS
+
+    assert_equal "test_run was added.", session[:success]
   end
 
   def test_add_run_without_name
+    post "/new", { name: "", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Run name must be between 1 and 100 characters."
   end
 
   def test_add_run_with_existing_name
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Run name must be unique."
   end
 
-  def test_add_run_with_negative_distance
+  def test_add_run_with_non_positive_distance
+    post "/new", { name: "test_run", distance: "0", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Run distance must be greater than 0."
   end
 
   def test_add_run_with_invalid_format_duration
+    post "/new", { name: "test_run", distance: "10", duration: "011:02:00", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid duration format. Must be of the form hh:mm:ss."
+
+    post "/new", { name: "test_run", distance: "10", duration: "bad_duration", date: "2017-07-10", time: "14:00" }
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid duration format. Must be of the form hh:mm:ss."
   end
 
   def test_add_run_with_zero_duration
+    post "/new", { name: "test_run", distance: "10", duration: "0", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Must enter a duration greater than 0 seconds."
   end
 
   def test_add_run_with_out_of_range_duration
+    post "/new", { name: "test_run", distance: "10", duration: "75:00", date: "2017-07-10", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Hours, minutes, and seconds must be between 0 and 59."
   end
 
   def test_add_run_with_invalid_format_date
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "invalid_date", time: "14:00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Date must be of the form mm/dd/yyyy."
+
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-14-10", time: "14:00" }
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Date must be of the form mm/dd/yyyy."
   end
 
-  def test_add_run_with_invlaid_format_time
+  def test_add_run_with_invalid_format_time
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-07-10", time: "00" }
 
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Time must be of the form hh:mm AM/PM."
+
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-07-10", time: "25:00" }
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Time must be of the form hh:mm AM/PM."
   end
 
   def test_viewing_view_runs
@@ -118,5 +150,52 @@ class RunTrackerTest < Minitest::Test
     assert_equal 200, last_response.status
     assert_includes last_response.body, "Name"
     assert_includes last_response.body, "test_run"
+  end
+
+  def test_viewing_edit_run
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+
+    get "/runs/1/edit"
+
+    assert_includes last_response.body, "test_run"
+    assert_includes last_response.body, %q(value="Edit")
+  end
+
+  def test_edit_run
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+
+    post "/runs/1", { name: "name_changed", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+
+    assert_equal File.open(runs_path).read, <<~RUNS
+      ---
+      - :id: 1
+        :name: name_changed
+        :distance: '10'
+        :duration: '01:02:00'
+        :date: '2017-07-10'
+        :time: '14:00'
+    RUNS
+
+    assert_equal "name_changed was updated.", session[:success]
+  end
+
+  def test_delete_run
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+
+    post "/runs/1/delete"
+
+    assert_equal File.open(runs_path).read, <<~RUNS
+      --- []
+    RUNS
+
+    assert_equal "test_run was deleted.", session[:success]
+  end
+
+  def test_upload_file
+
+  end
+
+  def test_upload_file_unsupported_format
+
   end
 end

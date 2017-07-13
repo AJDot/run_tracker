@@ -12,8 +12,8 @@
     <li class="duration"><%= run[:duration] %></li>
     <li class="date"><%= run[:date] %></li>
     <li class="time"><%= run[:time] %></li>
-    <form method="post" action="/<%= run[:id] %>/delete">
-      <a class="action edit" href="/runs/<%= run[:id] %>/edit">Edit</a>
+    <a class="action edit" href="/runs/<%= run[:id] %>/edit">Edit</a>
+    <form method="post" action="/runs/<%= run[:id] %>/delete">
       <button class="action delete" type="submit">Delete</button>
     </form>
   </ul>

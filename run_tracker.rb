@@ -58,7 +58,7 @@ end
 
 def error_for_distance(distance)
   if distance.to_f <= 0
-    "Run distance must be greater the 0."
+    "Run distance must be greater than 0."
   end
 end
 
@@ -77,8 +77,11 @@ def error_for_duration(duration)
 end
 
 def error_for_date(date)
-  # Proper date format
-  unless date =~ /\A\d{4}-\d{2}-\d{2}\z/
+  # Proper date format yyyy-mm-dd
+  unless date =~ /\A(?:[12]\d{3})-          # format year
+                (?:0[1-9]|1[0-2])-          # format month
+                (?:[0-2][0-9]|3[01])\z/x    # format day
+  # unless date =~ /\A\d{4}-\d{2}-\d{2}\z/
     "Date must be of the form mm/dd/yyyy."
   end
 end
@@ -150,6 +153,7 @@ post "/new" do
 
   if error_for_add_run_form(new_run)
     session[:error] = error_for_add_run_form(new_run)
+    status 422
     erb :new
   else
     session[:runs] << new_run
@@ -190,7 +194,7 @@ post "/runs/:id" do
 end
 
 # delete run
-post "/:id/delete" do
+post "/runs/:id/delete" do
   run_to_delete = load_run(params[:id].to_i)
   session[:runs].delete(run_to_delete)
   save_runs
