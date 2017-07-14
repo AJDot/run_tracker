@@ -27,11 +27,15 @@ class RunTrackerTest < Minitest::Test
     FileUtils.rm_rf(data_path)
   end
 
-  # def create_document(name, content = "")
-  #   File.open(File.join(data_path, name), "w") do |file|
-  #     file.write(content)
-  #   end
-  # end
+  def create_document(name, content = "")
+    File.open(File.join(data_path, name), "w") do |file|
+      file.write(content)
+    end
+  end
+
+  def tempfile(name)
+    Rack::Test::UploadedFile.new(File.join(data_path, name))
+  end
 
   def session
     last_request.env["rack.session"]
@@ -192,10 +196,33 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_upload_file
+    runs = <<~RUNS
+      ---
+      - :id: 1
+        :name: test_run
+        :distance: '10'
+        :duration: '01:02:00'
+        :date: '2017-07-10'
+        :time: '14:00'
+    RUNS
+    create_document("runs_to_upload.yml", runs)
 
+    post "/upload", { file: tempfile("runs_to_upload.yml") }
+
+    assert_equal "runs_to_upload.yml was uploaded.", session[:success]
   end
 
   def test_upload_file_unsupported_format
+    create_document("runs_to_upload.unknown")
 
+    post "/upload", { file: tempfile("runs_to_upload.unknown") }
+
+    assert_includes last_response.body, "Unable to upload. Currently only .yml files are supported."
+  end
+
+  def test_upload_file_without_file_selected
+    post "/upload"
+
+    assert_includes last_response.body, "Must provide a .yml file for upload."
   end
 end

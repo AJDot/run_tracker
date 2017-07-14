@@ -82,7 +82,7 @@ def error_for_date(date)
                 (?:0[1-9]|1[0-2])-          # format month
                 (?:[0-2][0-9]|3[01])\z/x    # format day
   # unless date =~ /\A\d{4}-\d{2}-\d{2}\z/
-    "Date must be of the form mm/dd/yyyy."
+    "Date must be after 1900 and of the form mm/dd/yyyy."
   end
 end
 
@@ -115,17 +115,106 @@ def format_duration(duration)
       duration
     end
   end
-  durations.join(":")
+
+  case durations.size
+  when 1
+    ['00', '00', durations[0]].join(":")
+  when 2
+    ['00', *durations].join(":")
+  when 3
+    durations.join(":")
+  end
+end
+
+def total_distance(runs)
+  runs.reduce(0) { |total, run| total + run[:distance].to_f }
+end
+
+def total_duration(runs)
+  secs_totals = total_secs(runs)
+  hours, secs_totals = secs_totals.divmod(3600)
+  mins, secs = secs_totals.divmod(60)
+
+  [hours, mins, secs]
+end
+
+def total_secs(runs)
+  runs.reduce(0) do |total, run|
+    total + get_total_secs(run)
+  end
+end
+
+def get_hour_min_sec(run)
+  duration = run[:duration].split(":").map(&:to_i)
+  case duration.size
+  when 1
+    [0, 0, duration[0]]
+  when 2
+    [0, duration[0], duration[1]]
+  when 3
+    [duration[0], duration[1], duration[2]]
+  end
+end
+
+def get_total_secs(run)
+  hour_min_sec = get_hour_min_sec(run)
+  hour_min_sec[0] * 3600 +
+  hour_min_sec[1] * 60 +
+  hour_min_sec[2]
+end
+
+def pace(run)
+  distance = run[:distance]
+  duration = get_total_secs(run)
+
+  duration.to_f / 60 / distance
+end
+
+def average_pace(runs)
+  total_distance = total_distance(runs)
+  p total_distance
+  secs_totals = runs.reduce(0) do |total, run|
+    total + get_total_secs(run)
+  end
+  p secs_totals
+
+  mins_per_mile = secs_totals.to_f / 60 / total_distance
+  mins, secs = mins_per_mile.divmod(1)
+  [mins, secs * 60]
+end
+
+def average_distance_per_run(runs)
+  total_distance(runs).to_f / runs.size
+end
+
+def average_duration_per_run(runs)
+  average_secs = (total_secs(runs).to_f / runs.size).to_i
+  hours, remaining_secs = average_secs.divmod(3600)
+  mins, secs = remaining_secs.divmod(60)
+  [hours, mins, secs]
 end
 
 helpers do
   def sort_by_attribute(runs, attribute)
     runs.sort_by { |run| run[attribute] }
   end
+
+  def format_time(duration)
+    format("%2d:%02d:%02d", *duration)
+  end
+
+  def format_pace(pace)
+    format("%2d:%02d / mile", *pace)
+  end
+
+  def format_distance(distance)
+    format("%.2f", distance)
+  end
 end
 
 # view index page - summary info
 get "/" do
+  @runs = session[:runs]
   erb :index
 end
 
@@ -211,7 +300,6 @@ post "/upload" do
     if File.extname(file_location) == ".yml"
       FileUtils.copy(file_location, runs_path)
       session[:success] = "#{filename} was uploaded."
-
       redirect "/runs"
     else
       @runs = session[:runs]
@@ -221,6 +309,18 @@ post "/upload" do
   else
     @runs = session[:runs]
     session[:error] = "Must provide a .yml file for upload."
+    erb :runs
+  end
+end
+
+get '/download/:filename' do
+  filename = params[:filename]
+  @runs = session[:runs]
+
+  if File.exist?("./public/data/#{filename}")
+    send_file "./public/data/#{filename}", :filename => filename, :type => 'Application/octet-stream'
+  else
+    session[:error] = "There was a problem downloading the data."
     erb :runs
   end
 end
