@@ -9,6 +9,7 @@ require "tilt/erubis"
 configure do
   enable :sessions
   set :session_secret, 'super secret'
+  set :erb, :escape_html => true
 end
 
 before do
@@ -28,7 +29,64 @@ def data_path
 end
 
 def runs_path
-  File.join(data_path, "runs.yml")
+  File.join(data_path, "#{session[:username]}.yml")
+end
+
+def no_runs?
+  session[:runs].size == 0
+end
+
+def credentials_path
+  if ENV["RACK_ENV"] == "test"
+    File.expand_path("../test/users.yml", __FILE__)
+  else
+    File.expand_path("../users.yml", __FILE__)
+  end
+end
+
+def load_user_credentials
+    YAML.load_file(credentials_path) || {}
+end
+
+def valid_credentials?(username, password)
+  credentials = load_user_credentials
+
+  credentials[username] == password
+end
+
+def user_signed_in?
+  session.key?(:username)
+end
+
+def require_signed_in_user
+  unless user_signed_in?
+    session[:error] = "You must be signed in to do that."
+    redirect "/"
+  end
+end
+
+def save_user_credentials(username, password)
+  credentials = load_user_credentials
+  credentials[username] = password
+  File.write(credentials_path, credentials.to_yaml)
+end
+
+def error_for_new_username(username)
+  credentials = load_user_credentials
+
+  if credentials.key?(username)
+    "#{username} is already taken."
+  elsif !(1..100).cover? username.size
+    "Username must be between 1 and 100 characters."
+  end
+end
+
+def error_for_new_password(password, password_confirm)
+  if password != password_confirm
+    "Passwords do not match."
+  elsif password.size < 6
+    "Password must be at least 6 characters."
+  end
 end
 
 def next_id
@@ -127,10 +185,14 @@ def format_duration(duration)
 end
 
 def total_distance(runs)
+  return 0.0 if no_runs?
+
   runs.reduce(0) { |total, run| total + run[:distance].to_f }
 end
 
 def total_duration(runs)
+  return [0, 0, 0] if no_runs?
+
   secs_totals = total_secs(runs)
   hours, secs_totals = secs_totals.divmod(3600)
   mins, secs = secs_totals.divmod(60)
@@ -139,6 +201,7 @@ def total_duration(runs)
 end
 
 def total_secs(runs)
+  return 0 if no_runs?
   runs.reduce(0) do |total, run|
     total + get_total_secs(run)
   end
@@ -171,12 +234,12 @@ def pace(run)
 end
 
 def average_pace(runs)
+  return [0, 0] if no_runs?
+
   total_distance = total_distance(runs)
-  p total_distance
   secs_totals = runs.reduce(0) do |total, run|
     total + get_total_secs(run)
   end
-  p secs_totals
 
   mins_per_mile = secs_totals.to_f / 60 / total_distance
   mins, secs = mins_per_mile.divmod(1)
@@ -184,10 +247,14 @@ def average_pace(runs)
 end
 
 def average_distance_per_run(runs)
+  return 0.0 if no_runs?
+
   total_distance(runs).to_f / runs.size
 end
 
 def average_duration_per_run(runs)
+  return [0, 0, 0] if no_runs?
+
   average_secs = (total_secs(runs).to_f / runs.size).to_i
   hours, remaining_secs = average_secs.divmod(3600)
   mins, secs = remaining_secs.divmod(60)
@@ -218,19 +285,68 @@ get "/" do
   erb :index
 end
 
+get "/users/signup" do
+  erb :signup
+end
+
+post "/users/signup" do
+  username = params[:username]
+  password = params[:password]
+  password_confirm = params[:password_confirm]
+
+  username_error = error_for_new_username(username)
+  password_error = error_for_new_password(password, password_confirm)
+  if username_error || password_error
+    status 422
+    session[:error] = username_error || password_error
+    erb :signup
+  else
+    save_user_credentials(username, password)
+    session[:success] = "You are now signed up!"
+    redirect "/"
+  end
+end
+
+get "/users/signin" do
+  erb :signin
+end
+
+post "/users/signin" do
+  username = params[:username]
+
+  if valid_credentials?(username, params[:password])
+    session[:username] = username
+    session[:success] = "Welcome, #{username}!"
+    redirect "/"
+  else
+    status 422
+    session[:error] = "Invalid credentials"
+    erb :signin
+  end
+end
+
+post "/users/signout" do
+  session[:success] = "#{session[:username]} has been signed out."
+  session.delete(:username)
+  redirect "/"
+end
+
 # view list of runs
 get "/runs" do
+  require_signed_in_user
   @runs = session[:runs]
   erb :runs
 end
 
 # view add new run page
 get "/new" do
+  require_signed_in_user
   erb :new
 end
 
 # add new run
 post "/new" do
+  require_signed_in_user
   new_run = {
     id:       next_id,
     name:     params[:name],
@@ -254,12 +370,14 @@ end
 
 # view edit run page
 get "/runs/:id/edit" do
+  require_signed_in_user
   @run = load_run(params[:id].to_i)
   erb :edit
 end
 
 # update run
 post "/runs/:id" do
+  require_signed_in_user
   @run = {
     id:       params[:id].to_i,
     name:     params[:name],
@@ -284,6 +402,7 @@ end
 
 # delete run
 post "/runs/:id/delete" do
+  require_signed_in_user
   run_to_delete = load_run(params[:id].to_i)
   session[:runs].delete(run_to_delete)
   save_runs
@@ -293,6 +412,7 @@ end
 
 # upload runs
 post "/upload" do
+  require_signed_in_user
   if params[:file]
     filename = params[:file][:filename]
     file_location = params[:file][:tempfile].path
@@ -314,6 +434,7 @@ post "/upload" do
 end
 
 get '/download/:filename' do
+  require_signed_in_user
   filename = params[:filename]
   @runs = session[:runs]
 

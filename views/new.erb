@@ -19,7 +19,7 @@
     <div>
       <label for="date">Date:</label>
       <br>
-      <input name="date" type="date" max="<%= Time.now.stamp("2017-07-15") %>" required value="<%= params[:date] %>">
+      <input name="date" type="date" min= "1900-01-01" max="<%= Time.now.stamp("2017-07-15") %>" required value="<%= params[:date] %>">
     </div>
     <div>
       <label for="time">Time</label>

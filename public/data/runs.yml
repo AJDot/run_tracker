@@ -24,8 +24,14 @@
   :date: '2017-06-13'
   :time: '12:59'
 - :id: 6
-  :name: Tempo 2
-  :distance: '4.25'
-  :duration: '33:07'
-  :date: '2017-07-12'
-  :time: '07:48'
+  :name: run 109
+  :distance: '10'
+  :duration: '00:01:10'
+  :date: '2017-01-01'
+  :time: '21:54'
+- :id: 7
+  :name: 'aweomse '
+  :distance: '34'
+  :duration: '03:30:30'
+  :date: '2017-01-01'
+  :time: '01:00'

@@ -39,22 +39,24 @@ header > h1 > a {
   color: #227722;
 }
 
-body header .actions {
+/*body header .actions {
   padding: 20px 0 0 0;
-}
+}*/
 
-header .actions * {
+/*header .actions * {*/
+.actions * {
   display: inline-block;
   padding: 5px 20px 5px 5px;
   margin-bottom: 5px;
   font-size: 16px;
-  cursor: pointer;
+  /*cursor: pointer;*/
   -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
   -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
   -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
 }
 
-body header .actions a:hover {
+.actions a:hover,
+.actions button:hover {
   border-bottom: 5px solid #3f3f3f;
   margin-bottom: 0;
 }
@@ -64,21 +66,14 @@ main {
   margin: 0 auto;
 }
 
-table {
-  max-width: 1000px;
-  padding-bottom: 30px;
-}
-
-#new input,
-#edit input {
+main > form input {
   width: 100%;
   padding: 5px 15px;
   margin: 5px 0 15px 0;
   font: normal 18px 'Raleway', sans-serif;
 }
 
-#new input[type="submit"],
-#edit input[type="submit"] {
+main > form input[type="submit"] {
   width: initial;
   height: 50px;
   padding: 10px 20px;
@@ -94,14 +89,12 @@ table {
   -o-transition: color 200ms ease, background 200ms ease;;
 }
 
-#new input[type="submit"]:hover,
-#edit input[type="submit"]:hover {
+main > form input[type="submit"]:hover {
   background: #3E933E;
   color: #3f3f3f;
 }
 
-#new fieldset,
-#edit fieldset {
+main > form fieldset {
   display: block;
   width: 30%;
   border: 2px groove;
@@ -109,8 +102,7 @@ table {
   padding: .55em .75em .625em .75em;
 }
 
-#new .actions,
-#edit .actions {
+main > form .actions {
   width: initial;
   border: none;
 }
@@ -126,6 +118,7 @@ table {
 
 .run > li {
   display: inline-block;
+  text-align: center;
   font-size: 18px;
 }
 
@@ -135,22 +128,22 @@ table {
 
 .run > .distance {
   width: 15%;
-  text-align: right;
 }
 
 .run > .duration {
   width: 15%;
-  text-align: right;
 }
 
 .run > .date {
   width: 15%;
-  text-align: center;
 }
 
 .run > .time {
   width: 15%;
-  text-align: center;
+}
+
+.run > .count {
+  width: 15%;
 }
 
 .run > form {
@@ -194,11 +187,11 @@ table {
   margin-bottom: 0;
 }
 
-#upload {
+.actions form {
   /*display: inline-block;*/
 }
 
-#upload * {
+.actions form button {
   /*font: normal 20px 'Raleway', san-serif;*/
   border: none;
   background: #ffffff;
@@ -208,7 +201,7 @@ table {
   -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
 }
 
-#upload input[type="file"] {
+.actions form input[type="file"] {
   cursor: pointer;
 }
 
@@ -219,7 +212,7 @@ table {
   cursor: pointer;
 }*/
 
-#upload button {
+.actions form button {
   display: inline-block;
   color: #3f3f3f;
   background: #ffffff;
@@ -239,7 +232,7 @@ table {
                       color 200ms ease;
 }
 
-#upload button:hover {
+.actions > form button:hover {
   color: #227722;
   border-bottom: 5px solid #3f3f3f;
   margin-bottom: 0;
@@ -259,4 +252,13 @@ table {
 .flash.success {
   color: #ffffff;
   background: #195959;
+}
+
+.user-status {
+  font-style: italic;
+  font-size: .9em;
+}
+
+.user-status > a {
+  font-style: initial;
 }

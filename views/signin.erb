@@ -1,0 +1,19 @@
+<form method="post" action="/users/signin">
+  <fieldset>
+    <legend><h3>Sign In</h3></legend>
+    <div>
+      <label name="username" for="username">Username:</label>
+      <br>
+      <input name="username" type="text" value="<%= params[:username] %>" />
+    </div>
+    <div>
+      <label name="password" for="password">Password:</label>
+      <br>
+      <input name="password" type="password" />
+    </div>
+    <fieldset class="actions">
+      <input type="submit" value="Sign In">
+      <a href="<%= request.referer %>">Cancel</a>
+    </fieldset>
+  </fieldset>
+</form>

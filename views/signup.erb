@@ -1,0 +1,24 @@
+<form method="post" action="/users/signup">
+  <fieldset>
+    <legend><h3>Sign In</h3></legend>
+    <div>
+      <label name="username" for="username">Username:</label>
+      <br>
+      <input name="username" type="text" value="<%= params[:username] %>" />
+    </div>
+    <div>
+      <label name="password" for="password">Password:</label>
+      <br>
+      <input name="password" type="password" value="<%= params[:password] %>"/>
+    </div>
+    <div>
+      <label name="password_confirm" for="password">Confirm Password:</label>
+      <br>
+      <input name="password_confirm" type="password" value="<%= params[:password_confirm] %>" />
+    </div>
+    <fieldset class="actions">
+      <input type="submit" value="Sign Un">
+      <a href="<%= request.referer %>">Cancel</a>
+    </fieldset>
+  </fieldset>
+</form>

@@ -19,12 +19,16 @@ class RunTrackerTest < Minitest::Test
   def setup
     # create data directory
     FileUtils.mkdir_p(File.join(data_path))
-    # File.write(runs_path, "---\n")
+    # create users.yml for testing
+    File.write(credentials_path, "---")
+    save_user_credentials("admin", "secret")
   end
 
   def teardown
     # delete data directory
     FileUtils.rm_rf(data_path)
+    # delete credentials file
+    FileUtils.rm(credentials_path)
   end
 
   def create_document(name, content = "")
@@ -41,8 +45,12 @@ class RunTrackerTest < Minitest::Test
     last_request.env["rack.session"]
   end
 
+  def admin_session
+    { "rack.session" => { username: "admin"} }
+  end
+
   def test_viewing_index
-    get "/"
+    get "/", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, 'Run Tracker'
@@ -50,7 +58,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_viewing_new_run
-    get "/new"
+    get "/new", {}, admin_session
 
     assert_equal 200, last_response.status
     assert_includes last_response.body, %q(<input name="distance")
@@ -58,7 +66,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_add_and_save_new_run
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal [{ id: 1, name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }], session[:runs]
     assert_equal File.open(runs_path).read, <<~RUNS
@@ -75,14 +83,14 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_add_run_without_name
-    post "/new", { name: "", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Run name must be between 1 and 100 characters."
   end
 
   def test_add_run_with_existing_name
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
     post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
 
     assert_equal 422, last_response.status
@@ -90,14 +98,14 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_add_run_with_non_positive_distance
-    post "/new", { name: "test_run", distance: "0", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "0", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Run distance must be greater than 0."
   end
 
   def test_add_run_with_invalid_format_duration
-    post "/new", { name: "test_run", distance: "10", duration: "011:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "011:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Invalid duration format. Must be of the form hh:mm:ss."
@@ -109,33 +117,33 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_add_run_with_zero_duration
-    post "/new", { name: "test_run", distance: "10", duration: "0", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "0", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Must enter a duration greater than 0 seconds."
   end
 
   def test_add_run_with_out_of_range_duration
-    post "/new", { name: "test_run", distance: "10", duration: "75:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "75:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Hours, minutes, and seconds must be between 0 and 59."
   end
 
   def test_add_run_with_invalid_format_date
-    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "invalid_date", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "invalid_date", time: "14:00" }, admin_session
 
     assert_equal 422, last_response.status
-    assert_includes last_response.body, "Date must be of the form mm/dd/yyyy."
+    assert_includes last_response.body, "Date must be after 1900 and of the form mm/dd/yyyy."
 
     post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-14-10", time: "14:00" }
 
     assert_equal 422, last_response.status
-    assert_includes last_response.body, "Date must be of the form mm/dd/yyyy."
+    assert_includes last_response.body, "Date must be after 1900 and of the form mm/dd/yyyy."
   end
 
   def test_add_run_with_invalid_format_time
-    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-07-10", time: "00" }
+    post "/new", { name: "test_run", distance: "10", duration: "1:00:00", date: "2017-07-10", time: "00" }, admin_session
 
     assert_equal 422, last_response.status
     assert_includes last_response.body, "Time must be of the form hh:mm AM/PM."
@@ -147,7 +155,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_viewing_view_runs
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     get last_response["Location"]
 
@@ -157,7 +165,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_viewing_edit_run
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     get "/runs/1/edit"
 
@@ -166,7 +174,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_edit_run
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     post "/runs/1", { name: "name_changed", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
 
@@ -184,7 +192,7 @@ class RunTrackerTest < Minitest::Test
   end
 
   def test_delete_run
-    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }
+    post "/new", { name: "test_run", distance: "10", duration: "01:02:00", date: "2017-07-10", time: "14:00" }, admin_session
 
     post "/runs/1/delete"
 
@@ -207,7 +215,7 @@ class RunTrackerTest < Minitest::Test
     RUNS
     create_document("runs_to_upload.yml", runs)
 
-    post "/upload", { file: tempfile("runs_to_upload.yml") }
+    post "/upload", { file: tempfile("runs_to_upload.yml") }, admin_session
 
     assert_equal "runs_to_upload.yml was uploaded.", session[:success]
   end
@@ -215,13 +223,13 @@ class RunTrackerTest < Minitest::Test
   def test_upload_file_unsupported_format
     create_document("runs_to_upload.unknown")
 
-    post "/upload", { file: tempfile("runs_to_upload.unknown") }
+    post "/upload", { file: tempfile("runs_to_upload.unknown") }, admin_session
 
     assert_includes last_response.body, "Unable to upload. Currently only .yml files are supported."
   end
 
   def test_upload_file_without_file_selected
-    post "/upload"
+    post "/upload", {}, admin_session
 
     assert_includes last_response.body, "Must provide a .yml file for upload."
   end

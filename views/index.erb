@@ -1,26 +1,44 @@
-<table>
-  <tr>
-    <th>Total Miles</th>
-    <th>Total Duration (hh:mm:ss)</th>
-    <th>Average Pace (mm:ss)</th>
-  </tr>
-  <tr>
-    <td><%= format_distance(total_distance(@runs)) %></td>
-    <td><%= format_duration(total_duration(@runs).join(":")) %></td>
-    <td><%= format_pace(average_pace(@runs)) %></td>
-  </tr>
-  <tr><td><br></td></tr>
-  <tr>
-    <th>Average Miles/Run</th>
-    <th>Average Time/Run (min:sec)</th>
-  </tr>
-  <tr>
-    <td><%= format_distance(average_distance_per_run(@runs)) %></td>
-    <td><%= format_duration(average_duration_per_run(@runs).join(":")) %></td>
-  </tr>
-</table>
+<% if session[:username] %>
+  <ul class="run heading">
+    <li class="count">Runs Ran</li>
+    <li class="distance">Total Miles</li>
+    <li class="duration">Total Duration (hh:mm:ss)</li>
+    <li class="duration">Average Pace (mm:ss)</li>
+    <li class="distance">Average Miles/Run</li>
+    <li class="duration">Average Duration/Run (hh:mm:ss)</li>
+  </ul>
+  <ul class="run">
+    <li class="count"><%= @runs.size %></li>
+    <li class="distance"><%= format_distance(total_distance(@runs)) %></li>
+    <li class="duration"><%= format_duration(total_duration(@runs).join(":")) %></li>
+    <li class="duration"><%= format_pace(average_pace(@runs)) %></li>
+    <li class="distance"><%= format_distance(average_distance_per_run(@runs)) %></li>
+    <li class="duration"><%= format_duration(average_duration_per_run(@runs).join(":")) %></li>
+  </ul>
+<% else %>
+  <p>Please sign in to view run data.</p>
+<% end %>
 
 <% content_for :header_links do %>
   <div><a href="/runs">View Runs</a></div>
   <div><a href="/new">Add Run</a></div>
+  <div>
+    <% if session[:username] %>
+      <form method="post" action="users/signout">
+        <p class="user-status">
+          Signed in as <%= session[:username] %>.
+          <button type="submit">Sign Out</button>
+        </p>
+      </form>
+    <% else %>
+      <p class="user-status">
+        Returning User:
+        <a href="/users/signin">Sign In</a>
+      </p>
+      <p class="user-status">
+        New User:
+        <a href="/users/signup">Sign Up</a>
+      </p>
+    <% end %>
+  </div>
 <% end %>
