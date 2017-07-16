@@ -134,8 +134,6 @@ class RunTrackerTest < Minitest::Test
     get last_response["Location"]
 
     assert_includes last_response.body, "Sign In"
-
-
   end
 
   def test_viewing_new_run

@@ -280,7 +280,7 @@ post "/new" do
   require_signed_in_user
   new_run = {
     id:       next_id,
-    name:     params[:name],
+    name:     params[:name].strip,
     distance: params[:distance],
     duration: format_duration(params[:duration]),
     date:     params[:date],
@@ -311,7 +311,7 @@ post "/runs/:id" do
   require_signed_in_user
   @run = {
     id:       params[:id].to_i,
-    name:     params[:name],
+    name:     params[:name].strip,
     distance: params[:distance],
     duration: format_duration(params[:duration]),
     date:     params[:date],

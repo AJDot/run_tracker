@@ -1,31 +1,19 @@
 ---
-- :id: 5
-  :name: run14
-  :distance: '14'
-  :duration: '01:44:14'
-  :date: '2017-06-13'
-  :time: '12:59'
-- :id: 4
-  :name: run3
-  :distance: '50'
-  :duration: '07:06:05'
-  :date: '2017-07-11'
-  :time: '13:00'
-- :id: 3
-  :name: run12
-  :distance: '142'
-  :duration: '21:03:02'
-  :date: '2017-01-01'
-  :time: '14:05'
+- :id: 1
+  :name: run 1
+  :distance: '4.16'
+  :duration: '00:34:07'
+  :date: '2017-07-13'
+  :time: '08:18'
 - :id: 2
-  :name: run2
-  :distance: '7.4'
-  :duration: '00:56:00'
-  :date: '2017-01-31'
-  :time: '13:59'
-- :id: 6
-  :name: run10
-  :distance: '100'
-  :duration: '10:10:10'
-  :date: '1900-01-01'
-  :time: '01:00'
+  :name: run 2
+  :distance: '6.5'
+  :duration: '00:53:04'
+  :date: '2017-07-15'
+  :time: '08:10'
+- :id: 3
+  :name: run 3
+  :distance: '4'
+  :duration: '00:32:11'
+  :date: '2017-07-16'
+  :time: '08:51'
