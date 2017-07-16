@@ -13,3 +13,7 @@ gem "stamp"
 gem 'pry'
 
 ruby "2.4.0"
+
+group do
+  gem "puma"
+end

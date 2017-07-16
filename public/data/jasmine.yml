@@ -29,3 +29,9 @@
   :duration: '33:07'
   :date: '2017-07-12'
   :time: '07:48'
+- :id: 7
+  :name: run 8
+  :distance: '9'
+  :duration: '01:02:00'
+  :date: '2017-07-08'
+  :time: '13:00'
