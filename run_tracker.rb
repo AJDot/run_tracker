@@ -5,6 +5,9 @@ require "sinatra"
 require "sinatra/reloader" if development?
 require "sinatra/content_for"
 require "tilt/erubis"
+require "bcrypt"
+
+require_relative "./run_helpers"
 
 configure do
   enable :sessions
@@ -32,10 +35,6 @@ def runs_path
   File.join(data_path, "#{session[:username]}.yml")
 end
 
-def no_runs?
-  session[:runs].size == 0
-end
-
 def credentials_path
   if ENV["RACK_ENV"] == "test"
     File.expand_path("../test/users.yml", __FILE__)
@@ -48,10 +47,20 @@ def load_user_credentials
     YAML.load_file(credentials_path) || {}
 end
 
+def save_user_credentials(username, password)
+  credentials = load_user_credentials
+  credentials[username] = BCrypt::Password.create(password).to_s
+  File.write(credentials_path, credentials.to_yaml)
+end
+
 def valid_credentials?(username, password)
   credentials = load_user_credentials
-
-  credentials[username] == password
+  if credentials.key?(username)
+    bcrypt_password = BCrypt::Password.new(credentials[username])
+    bcrypt_password == password
+  else
+    false
+  end
 end
 
 def user_signed_in?
@@ -63,12 +72,6 @@ def require_signed_in_user
     session[:error] = "You must be signed in to do that."
     redirect "/"
   end
-end
-
-def save_user_credentials(username, password)
-  credentials = load_user_credentials
-  credentials[username] = password
-  File.write(credentials_path, credentials.to_yaml)
 end
 
 def error_for_new_username(username)
@@ -184,83 +187,6 @@ def format_duration(duration)
   end
 end
 
-def total_distance(runs)
-  return 0.0 if no_runs?
-
-  runs.reduce(0) { |total, run| total + run[:distance].to_f }
-end
-
-def total_duration(runs)
-  return [0, 0, 0] if no_runs?
-
-  secs_totals = total_secs(runs)
-  hours, secs_totals = secs_totals.divmod(3600)
-  mins, secs = secs_totals.divmod(60)
-
-  [hours, mins, secs]
-end
-
-def total_secs(runs)
-  return 0 if no_runs?
-  runs.reduce(0) do |total, run|
-    total + get_total_secs(run)
-  end
-end
-
-def get_hour_min_sec(run)
-  duration = run[:duration].split(":").map(&:to_i)
-  case duration.size
-  when 1
-    [0, 0, duration[0]]
-  when 2
-    [0, duration[0], duration[1]]
-  when 3
-    [duration[0], duration[1], duration[2]]
-  end
-end
-
-def get_total_secs(run)
-  hour_min_sec = get_hour_min_sec(run)
-  hour_min_sec[0] * 3600 +
-  hour_min_sec[1] * 60 +
-  hour_min_sec[2]
-end
-
-def pace(run)
-  distance = run[:distance]
-  duration = get_total_secs(run)
-
-  duration.to_f / 60 / distance
-end
-
-def average_pace(runs)
-  return [0, 0] if no_runs?
-
-  total_distance = total_distance(runs)
-  secs_totals = runs.reduce(0) do |total, run|
-    total + get_total_secs(run)
-  end
-
-  mins_per_mile = secs_totals.to_f / 60 / total_distance
-  mins, secs = mins_per_mile.divmod(1)
-  [mins, secs * 60]
-end
-
-def average_distance_per_run(runs)
-  return 0.0 if no_runs?
-
-  total_distance(runs).to_f / runs.size
-end
-
-def average_duration_per_run(runs)
-  return [0, 0, 0] if no_runs?
-
-  average_secs = (total_secs(runs).to_f / runs.size).to_i
-  hours, remaining_secs = average_secs.divmod(3600)
-  mins, secs = remaining_secs.divmod(60)
-  [hours, mins, secs]
-end
-
 helpers do
   def sort_by_attribute(runs, attribute)
     runs.sort_by { |run| run[attribute] }
@@ -271,7 +197,7 @@ helpers do
   end
 
   def format_pace(pace)
-    format("%2d:%02d / mile", *pace)
+    format("%2d:%02d", *pace)
   end
 
   def format_distance(distance)
@@ -285,10 +211,12 @@ get "/" do
   erb :index
 end
 
+# view signup page
 get "/users/signup" do
   erb :signup
 end
 
+# signup new user
 post "/users/signup" do
   username = params[:username]
   password = params[:password]
@@ -307,10 +235,12 @@ post "/users/signup" do
   end
 end
 
+# view signin page
 get "/users/signin" do
   erb :signin
 end
 
+# signin existing user
 post "/users/signin" do
   username = params[:username]
 
@@ -320,11 +250,12 @@ post "/users/signin" do
     redirect "/"
   else
     status 422
-    session[:error] = "Invalid credentials"
+    session[:error] = "Invalid credentials."
     erb :signin
   end
 end
 
+# sign out user
 post "/users/signout" do
   session[:success] = "#{session[:username]} has been signed out."
   session.delete(:username)
@@ -433,13 +364,14 @@ post "/upload" do
   end
 end
 
+# download runs as .yml file
 get '/download/:filename' do
   require_signed_in_user
   filename = params[:filename]
   @runs = session[:runs]
 
   if File.exist?("./public/data/#{filename}")
-    send_file "./public/data/#{filename}", :filename => filename, :type => 'Application/octet-stream'
+    send_file "./public/data/#{filename}", :filename => "runs.yml", :type => 'text/plain'
   else
     session[:error] = "There was a problem downloading the data."
     erb :runs

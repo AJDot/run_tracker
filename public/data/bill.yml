@@ -1,13 +1,19 @@
 ---
 - :id: 1
-  :name: bill's run 1
-  :distance: '15'
-  :duration: '01:40:00'
-  :date: '2017-01-01'
-  :time: '03:03'
-- :id: 2
-  :name: bill's run 2
+  :name: Tempo 1
   :distance: '6'
-  :duration: '00:50:00'
+  :duration: '00:47:00'
+  :date: '1900-01-01'
+  :time: '01:00'
+- :id: 2
+  :name: Tempo 2
+  :distance: '8'
+  :duration: '01:00:00'
+  :date: '1900-01-02'
+  :time: '01:00'
+- :id: 3
+  :name: Marathon
+  :distance: '26.2'
+  :duration: '04:00:00'
   :date: '2017-01-01'
   :time: '01:00'

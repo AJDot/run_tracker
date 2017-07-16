@@ -57,6 +57,87 @@ class RunTrackerTest < Minitest::Test
     assert_includes last_response.body, 'Total Miles'
   end
 
+  def test_viewing_signin
+    get "/users/signin"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<h3>Sign In</h3>"
+    assert_includes last_response.body, %q(<input type="submit" value="Sign In")
+  end
+
+  def test_signin
+    post "/users/signin", {username: "admin", password: "secret"}
+
+    assert_equal 302, last_response.status
+    assert_equal "Welcome, admin!", session[:success]
+    assert_equal "admin", session[:username]
+
+    get last_response["Location"]
+    assert_includes last_response.body, "Signed in as admin."
+  end
+
+  def test_signin_with_invalid_credentials
+    post "/users/signin", {username: "wrong_username", password: "wrong_password"}
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Invalid credentials."
+    assert_nil session[:username]
+  end
+
+  def test_viewing_signup
+    get "/users/signup"
+
+    assert_equal 200, last_response.status
+    assert_includes last_response.body, "<h3>Sign Up</h3>"
+    assert_includes last_response.body, %q(<input type="submit" value="Sign Up")
+  end
+
+  def test_signup
+    post "users/signup", {username: "test_username", password: "test_password", password_confirm: "test_password"}
+
+    assert_equal 302, last_response.status
+    assert load_user_credentials["test_username"]
+    assert_equal "You are now signed up!", session[:success]
+  end
+
+  def test_signup_with_invalid_username
+    post "users/signup", {username: "admin", password: "test_password", password_confirm: "test_password"}
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "admin is already taken."
+    assert_equal 1, load_user_credentials.size
+  end
+
+  def test_signup_with_invalid_password
+    post "users/signup", {username: "test_username", password: "short", password_confirm: "short"}
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Password must be at least 6 characters."
+    assert_nil load_user_credentials["test_username"]
+  end
+
+  def test_signup_without_password_match
+    post "users/signup", {username: "test_username", password: "secret", password_confirm: "supersecret"}
+
+    assert_equal 422, last_response.status
+    assert_includes last_response.body, "Passwords do not match."
+    assert_nil load_user_credentials["test_username"]
+  end
+
+  def test_signout
+    post "/users/signout", {}, admin_session
+
+    assert_equal 302, last_response.status
+    assert_equal "admin has been signed out.", session[:success]
+    assert_nil session[:username]
+
+    get last_response["Location"]
+
+    assert_includes last_response.body, "Sign In"
+
+
+  end
+
   def test_viewing_new_run
     get "/new", {}, admin_session
 

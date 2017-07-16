@@ -1,17 +1,19 @@
 <ul class="run heading">
-  <li class="name">Name</li>
-  <li class="distance">Distance</li>
-  <li class="duration">Duration</li>
-  <li class="date">Date</li>
-  <li class="time">Time</li>
+  <li class="col-12-2">Name</li>
+  <li class="col-12-1">Distance</li>
+  <li class="col-12-2">Duration</li>
+  <li class="col-12-1">Pace</li>
+  <li class="col-12-2">Date</li>
+  <li class="col-12-1">Time</li>
 </ul>
 <% sort_by_attribute(@runs, :id).each do |run| %>
   <ul class="run">
-    <li class="name"><%= run[:name] %></li>
-    <li class="distance"><%= run[:distance] %></li>
-    <li class="duration"><%= run[:duration] %></li>
-    <li class="date"><%= run[:date] %></li>
-    <li class="time"><%= run[:time] %></li>
+    <li class="col-12-2"><%= run[:name] %></li>
+    <li class="col-12-1"><%= format_distance(run[:distance]) %></li>
+    <li class="col-12-2"><%= run[:duration] %></li>
+    <li class="col-12-1"><%= format_pace(pace(run)) %></li>
+    <li class="col-12-2"><%= run[:date] %></li>
+    <li class="col-12-1"><%= run[:time] %></li>
     <a class="action edit" href="/runs/<%= run[:id] %>/edit">Edit</a>
     <form method="post" action="/runs/<%= run[:id] %>/delete">
       <button class="action delete" type="submit">Delete</button>
@@ -21,7 +23,7 @@
 
 <% content_for :header_links do %>
   <a href="/new">Add Run</a>
-  <a href="/download/runs.yml">Download Runs</a>
+  <a href="/download/<%= session[:username] %>.yml">Download Runs</a>
   <form method="post" action="/upload" enctype="multipart/form-data">
     <button type="submit">Upload</button>
     <input type="file" name="file" accept=".yml">

@@ -7,6 +7,8 @@ gem "erubis"
 gem "minitest"
 gem "minitest-reporters"
 
+gem "bcrypt"
+
 gem "stamp"
 gem 'pry'
 

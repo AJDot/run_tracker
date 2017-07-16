@@ -1,19 +1,19 @@
 <% if session[:username] %>
   <ul class="run heading">
-    <li class="count">Runs Ran</li>
-    <li class="distance">Total Miles</li>
-    <li class="duration">Total Duration (hh:mm:ss)</li>
-    <li class="duration">Average Pace (mm:ss)</li>
-    <li class="distance">Average Miles/Run</li>
-    <li class="duration">Average Duration/Run (hh:mm:ss)</li>
+    <li class="col-12-1">Runs Ran</li>
+    <li class="col-12-1">Total Miles</li>
+    <li class="col-12-2">Total Duration (hh:mm:ss)</li>
+    <li class="col-12-2">Average Pace (mm:ss)</li>
+    <li class="col-12-1">Average Miles</li>
+    <li class="col-12-2">Average Duration (hh:mm:ss)</li>
   </ul>
   <ul class="run">
-    <li class="count"><%= @runs.size %></li>
-    <li class="distance"><%= format_distance(total_distance(@runs)) %></li>
-    <li class="duration"><%= format_duration(total_duration(@runs).join(":")) %></li>
-    <li class="duration"><%= format_pace(average_pace(@runs)) %></li>
-    <li class="distance"><%= format_distance(average_distance_per_run(@runs)) %></li>
-    <li class="duration"><%= format_duration(average_duration_per_run(@runs).join(":")) %></li>
+    <li class="col-12-1"><%= @runs.size %></li>
+    <li class="col-12-1"><%= format_distance(total_distance(@runs)) %></li>
+    <li class="col-12-2"><%= format_duration(total_duration(@runs).join(":")) %></li>
+    <li class="col-12-2"><%= format_pace(average_pace(@runs)) %> / mile</li>
+    <li class="col-12-1"><%= format_distance(average_distance_per_run(@runs)) %></li>
+    <li class="col-12-2"><%= format_duration(average_duration_per_run(@runs).join(":")) %></li>
   </ul>
 <% else %>
   <p>Please sign in to view run data.</p>

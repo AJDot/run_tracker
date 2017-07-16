@@ -122,7 +122,7 @@ main > form .actions {
   font-size: 18px;
 }
 
-.run > .name {
+/*.run > .name {
   width: 20%;
 }
 
@@ -144,6 +144,22 @@ main > form .actions {
 
 .run > .count {
   width: 15%;
+}*/
+
+.col-12-1 {
+  width: 8.3%;
+}
+
+.col-12-2 {
+  width: 16.6%;
+}
+
+.col-12-3 {
+  width: 24.9%;
+}
+
+.col-12-4 {
+  width: 33.2%;
 }
 
 .run > form {
