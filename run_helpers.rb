@@ -1,15 +1,14 @@
-def no_runs?
-  session[:runs].zero?
+def no_runs?(runs)
+  runs.size.zero?
 end
 
 def total_distance(runs)
-  return 0.0 if no_runs?
-
+  return 0.0 if no_runs?(runs)
   runs.reduce(0) { |total, run| total + run[:distance].to_f }
 end
 
 def total_duration(runs)
-  return [0, 0, 0] if no_runs?
+  return [0, 0, 0] if no_runs?(runs)
 
   secs_totals = total_secs(runs)
   hours, secs_totals = secs_totals.divmod(3600)
@@ -19,7 +18,7 @@ def total_duration(runs)
 end
 
 def total_secs(runs)
-  return 0 if no_runs?
+  return 0 if no_runs?(runs)
   runs.reduce(0) do |total, run|
     total + get_total_secs(run)
   end
@@ -54,7 +53,7 @@ def pace(run)
 end
 
 def average_pace(runs)
-  return [0, 0] if no_runs?
+  return [0, 0] if no_runs?(runs)
 
   total_distance = total_distance(runs)
   secs_totals = runs.reduce(0) do |total, run|
@@ -67,13 +66,13 @@ def average_pace(runs)
 end
 
 def average_distance_per_run(runs)
-  return 0.0 if no_runs?
+  return 0.0 if no_runs?(runs)
 
   total_distance(runs).to_f / runs.size
 end
 
 def average_duration_per_run(runs)
-  return [0, 0, 0] if no_runs?
+  return [0, 0, 0] if no_runs?(runs)
 
   average_secs = (total_secs(runs).to_f / runs.size).to_i
   hours, remaining_secs = average_secs.divmod(3600)

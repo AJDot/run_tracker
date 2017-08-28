@@ -1,3 +1,5 @@
+# Created before SessionPersistence class was created.
+
 ENV["RACK_ENV"] = "test"
 
 require "fileutils"
