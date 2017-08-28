@@ -1,5 +1,5 @@
 def no_runs?
-  session[:runs].size == 0
+  session[:runs].zero?
 end
 
 def total_distance(runs)
@@ -26,7 +26,7 @@ def total_secs(runs)
 end
 
 def get_hour_min_sec(run)
-  duration = run[:duration].split(":").map(&:to_i)
+  duration = run[:duration].split(':').map(&:to_i)
   case duration.size
   when 1
     [0, 0, duration[0]]
@@ -40,8 +40,8 @@ end
 def get_total_secs(run)
   hour_min_sec = get_hour_min_sec(run)
   hour_min_sec[0] * 3600 +
-  hour_min_sec[1] * 60 +
-  hour_min_sec[2]
+    hour_min_sec[1] * 60 +
+    hour_min_sec[2]
 end
 
 def pace(run)
