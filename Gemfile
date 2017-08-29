@@ -13,11 +13,8 @@ gem 'stamp'
 
 gem 'pg'
 
-gem 'pry'
-gem 'rubocop'
-
 ruby '2.4.0'
 
-group do
+group :production do
   gem 'puma'
 end

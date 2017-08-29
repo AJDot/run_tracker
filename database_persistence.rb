@@ -3,7 +3,15 @@ require 'bcrypt'
 
 class DatabasePersistence
   def initialize
-    @db = PG.connect(dbname: 'run_tracker')
+    @db = if Sinatra::Base.production?
+            PG.connect(ENV['DATABASE_URL'])
+          else
+            PG.connect(dbname: 'run_tracker')
+          end
+  end
+
+  def disconnect
+    @db.close
   end
 
   def query(statement, *params)

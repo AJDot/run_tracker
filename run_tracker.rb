@@ -3,7 +3,6 @@ require 'yaml'
 require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
-require 'pry'
 
 require_relative './run_helpers'
 require_relative './database_persistence'
@@ -22,6 +21,10 @@ end
 before do
   # @storage = SessionPersistence.new(session)
   @storage = DatabasePersistence.new
+end
+
+after do
+  @storage.disconnect
 end
 
 def data_path
