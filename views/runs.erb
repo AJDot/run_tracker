@@ -23,9 +23,16 @@
 
 <% content_for :header_links do %>
   <a href="/new">Add Run</a>
-  <a href="/download/<%= session[:username] %>.yml">Download Runs</a>
   <form method="post" action="/upload" enctype="multipart/form-data">
     <button type="submit">Upload</button>
     <input type="file" name="file" accept=".yml">
+    <p class="upload_help">To upload a <i>.yml</i> file, use the following format:<br>
+      ---<br>
+      :name: <i>xyz</i><br>
+      :distance: <i>##.##</i><br>
+      :duration: <i>hh:mm:ss</i><br>
+      :date: <i>yyyy-mm-dd</i><br>
+      :time: <i>hh:mm:ss</i>
+    </p>
   </form>
 <% end %>

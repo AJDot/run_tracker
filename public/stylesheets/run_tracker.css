@@ -44,7 +44,7 @@ header > h1 > a {
 }*/
 
 /*header .actions * {*/
-.actions * {
+.actions > * {
   display: inline-block;
   padding: 5px 20px 5px 5px;
   margin-bottom: 5px;
@@ -59,6 +59,24 @@ header > h1 > a {
 .actions button:hover {
   border-bottom: 5px solid #3f3f3f;
   margin-bottom: 0;
+}
+
+.actions input[type="file"] + .upload_help {
+  position: absolute;
+  padding: 0.5em;
+  color: transparent;
+  background-color: transparent;
+  -webkit-transition: color 200ms ease,
+                      background-color 200ms ease;
+  -moz-transition:    color 200ms ease,
+                      background-color 200ms ease;
+  -o-transition:      color 200ms ease,
+                      background-color 200ms ease;
+}
+
+.actions input[type="file"]:hover + .upload_help {
+  color: #ffffff;
+  background-color: #3f3f3f;
 }
 
 main {

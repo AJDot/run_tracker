@@ -1,12 +1,12 @@
-require 'pry'
 require 'stamp'
 require 'yaml'
 require 'sinatra'
 require 'sinatra/content_for'
 require 'tilt/erubis'
-require 'bcrypt'
+require 'pry'
 
 require_relative './run_helpers'
+require_relative './database_persistence'
 
 configure do
   enable :sessions
@@ -16,11 +16,12 @@ end
 
 configure(:development) do
   require 'sinatra/reloader'
-  also_reload 'run_helpers.rb', 'session_persistence.rb'
+  also_reload 'run_helpers.rb', 'database_persistence.rb'
 end
 
 before do
-  @storage = SessionPersistence.new(session)
+  # @storage = SessionPersistence.new(session)
+  @storage = DatabasePersistence.new
 end
 
 def data_path
@@ -28,34 +29,6 @@ def data_path
     File.expand_path('../test/data', __FILE__)
   else
     File.expand_path('../public/data', __FILE__)
-  end
-end
-
-def credentials_path
-  if ENV['RACK_ENV'] == 'test'
-    File.expand_path('../test/users.yml', __FILE__)
-  else
-    File.expand_path('../users.yml', __FILE__)
-  end
-end
-
-def load_user_credentials
-  YAML.load_file(credentials_path) || {}
-end
-
-def save_user_credentials(username, password)
-  credentials = load_user_credentials
-  credentials[username] = BCrypt::Password.create(password).to_s
-  File.write(credentials_path, credentials.to_yaml)
-end
-
-def valid_credentials?(username, password)
-  credentials = load_user_credentials
-  if credentials.key?(username)
-    bcrypt_password = BCrypt::Password.new(credentials[username])
-    bcrypt_password == password
-  else
-    false
   end
 end
 
@@ -70,7 +43,7 @@ def require_signed_in_user
 end
 
 def error_for_new_username(username)
-  credentials = load_user_credentials
+  credentials = @storage.load_user_credentials
 
   if credentials.key?(username)
     "#{username} is already taken."
@@ -87,56 +60,6 @@ def error_for_new_password(password, password_confirm)
   end
 end
 
-class SessionPersistence
-  def initialize(session)
-    @session = session
-    @session[:runs] = if File.exist?(runs_path)
-                        YAML.load_file(runs_path)
-                      else
-                        []
-                      end
-  end
-
-  def find_run(id)
-    @session[:runs].find { |run| run[:id] == id } if id
-  end
-
-  def all_runs
-    @session[:runs]
-  end
-
-  def add_run(new_run)
-    new_run[:id] ||= next_id
-    @session[:runs] << new_run
-  end
-
-  def delete_run(run_to_delete)
-    @session[:runs].delete(run_to_delete)
-  end
-
-  def save_runs
-    File.write(runs_path, @session[:runs].to_yaml)
-  end
-
-  def upload_runs(file_location)
-    new_runs = YAML.load_file(file_location)
-    @session[:runs] += new_runs
-    @session[:runs].uniq!
-    save_runs
-  end
-
-  private
-
-  def next_id
-    max = @session[:runs].map { |run| run[:id] }.max || 0
-    max + 1
-  end
-
-  def runs_path
-    File.join(data_path, "#{@session[:username]}.yml")
-  end
-end
-
 def load_run(id)
   run = @storage.find_run(id)
   return run if run
@@ -146,15 +69,16 @@ def load_run(id)
 end
 
 def error_for_name(name, id)
+  all_runs = @storage.all_runs(session[:username])
   if !(1..100).cover? name.size
     'Run name must be between 1 and 100 characters.'
-  elsif @storage.all_runs.any? { |run| run[:name] == name && run[:id] != id }
+  elsif all_runs.any? { |run| run[:name] == name && run[:id] != id }
     'Run name must be unique.'
   end
 end
 
 def error_for_distance(distance)
-  return if distance.to_f > 0
+  return if distance.to_f > 0.0
   'Run distance must be greater than 0.'
 end
 
@@ -175,28 +99,43 @@ end
 
 def error_for_date(date)
   # Proper date format yyyy-mm-dd
-  unless date =~ /\A(?:[12]\d{3})-       # format year
-                (?:0[1-9]|1[0-2])-       # format month
-                (?:[0-2][0-9]|3[01])\z/x # format day
-    'Date must be after 1900 and of the form mm/dd/yyyy.'
-  end
+  year = /\A(?:[12]\d{3})/
+  month = /(?:0[1-9]|1[0-2])/
+  day = /(?:[0-2][0-9]|3[01])\z/
+  return if date =~ /#{year}-#{month}-#{day}/x
+
+  'Date must be after 1900 and of the form mm/dd/yyyy.'
 end
 
 def error_for_time(time)
-  valid_format = time =~ /\A(?:[01][0-9]|2[0-4]):[0-5][0-9]\z/
+  # Proper time format hh:mm:ss
+  valid_format = time =~ /\A(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\z/
   return if valid_format
-  # Proper time format
-  # unless time =~ /\A(?:[01][0-9]|2[0-4]):[0-5][0-9]\z/
-  'Time must be of the form hh:mm AM/PM.'
-  # end
+
+  'Time must be of the form hh:mm:ss.'
 end
 
-def error_for_add_run_form(run)
+def error_for_add_run(run)
   error_for_name(run[:name], run[:id]) ||
     error_for_distance(run[:distance]) ||
     error_for_duration(run[:duration]) ||
     error_for_date(run[:date]) ||
     error_for_time(run[:time])
+end
+
+def error_for_upload
+  return 'Must provide a .yml file for upload.' if params[:file].nil?
+  file_location = params[:file][:tempfile].path
+  if File.extname(file_location) != '.yml'
+    'Currently only .yml files are supported.'
+  else
+    new_runs = YAML.load_file(file_location)
+    new_runs.each do |run|
+      error = error_for_add_run(run)
+      return error + %( Fix "#{run[:name]}".) if error
+    end
+    nil
+  end
 end
 
 def valid_string?(string, regex)
@@ -230,7 +169,7 @@ end
 
 # view index page - summary info
 get '/' do
-  @runs = @storage.all_runs
+  @runs = @storage.all_runs(session[:username])
   # @runs = session[:runs]
   erb :index
 end
@@ -253,7 +192,7 @@ post '/users/signup' do
     session[:error] = username_error || password_error
     erb :signup
   else
-    save_user_credentials(username, password)
+    @storage.save_user_credentials(username, password)
     session[:success] = 'You are now signed up!'
     redirect '/'
   end
@@ -268,8 +207,9 @@ end
 post '/users/signin' do
   username = params[:username]
 
-  if valid_credentials?(username, params[:password])
+  if @storage.valid_credentials?(username, params[:password])
     session[:username] = username
+    session[:user_id] = @storage.user_id(username)
     session[:success] = "Welcome, #{username}!"
     redirect '/'
   else
@@ -289,7 +229,7 @@ end
 # view list of runs
 get '/runs' do
   require_signed_in_user
-  @runs = @storage.all_runs
+  @runs = @storage.all_runs(session[:username])
   erb :runs
 end
 
@@ -303,22 +243,21 @@ end
 post '/new' do
   require_signed_in_user
   new_run = {
-    # id:       next_id,
     name:     params[:name].strip,
     distance: params[:distance],
     duration: format_duration(params[:duration]),
     date:     params[:date],
-    time:     params[:time]
+    time:     params[:time],
+    user_id:  @storage.user_id(session[:username])
   }
 
-  error = error_for_add_run_form(new_run)
+  error = error_for_add_run(new_run)
   if error
     session[:error] = error
     status 422
     erb :new
   else
     @storage.add_run(new_run)
-    @storage.save_runs
     session[:success] = "#{new_run[:name]} was added."
     redirect '/runs'
   end
@@ -340,18 +279,16 @@ post '/runs/:id' do
     distance: params[:distance],
     duration: format_duration(params[:duration]),
     date:     params[:date],
-    time:     params[:time]
+    time:     params[:time],
+    user_id:  session[:user_id]
   }
 
-  error = error_for_add_run_form(@run)
+  error = error_for_add_run(@run)
   if error
     session[:error] = error
     erb :edit
   else
-    run_to_edit = load_run(params[:id].to_i)
-    @storage.delete_run(run_to_edit)
-    @storage.add_run(@run)
-    @storage.save_runs
+    @storage.update_run(@run)
     session[:success] = "#{@run[:name]} was updated."
     redirect '/runs'
   end
@@ -362,7 +299,6 @@ post '/runs/:id/delete' do
   require_signed_in_user
   run_to_delete = load_run(params[:id].to_i)
   @storage.delete_run(run_to_delete)
-  @storage.save_runs
   session[:success] = "#{run_to_delete[:name]} was deleted."
   redirect '/runs'
 end
@@ -370,42 +306,17 @@ end
 # upload runs
 post '/upload' do
   require_signed_in_user
-  if params[:file]
-    filename = params[:file][:filename]
-    file_location = params[:file][:tempfile].path
+  @runs = @storage.all_runs(session[:username])
 
-    if File.extname(file_location) == '.yml'
-      @storage.upload_runs(file_location)
-      session[:success] = "#{filename} was uploaded."
-      redirect '/runs'
-    else
-      @runs = @storage.all_runs
-      session[:error] = 'Unable to upload. ' \
-                        'Currently only .yml files are supported.'
-      erb :runs
-    end
-  else
-    @runs = @storage.all_runs
-    session[:error] = 'Must provide a .yml file for upload.'
+  error = error_for_upload
+  if error
+    session[:error] = error
+    status 422
     erb :runs
-  end
-end
-
-# download runs as .yml file
-get '/download/:filename' do
-  require_signed_in_user
-  filename = params[:filename]
-  @runs = @storage.all_runs
-
-  if File.exist?("./public/data/#{filename}")
-    parameters = [
-      "./public/data/#{filename}",
-      filename: 'runs.yml',
-      type: 'text/plain'
-    ]
-    send_file(*parameters)
   else
-    session[:error] = 'There was a problem downloading the data.'
-    erb :runs
+    new_runs = YAML.load_file(params[:file][:tempfile].path)
+    @storage.upload_runs(session[:user_id], new_runs)
+    session[:success] = "#{params[:file][:filename]} was uploaded."
+    redirect '/runs'
   end
 end
