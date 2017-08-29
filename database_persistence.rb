@@ -20,13 +20,10 @@ class DatabasePersistence
   def all_runs(username)
     sql = 'SELECT * FROM runs WHERE user_id = $1'
     result = query(sql, user_id(username))
+    return [] if result.ntuples == 0
 
-    if result.ntuples > 0
-      result.map do |tuple|
-        tuple_to_run_hash(tuple)
-      end
-    else
-      []
+    result.map do |tuple|
+      tuple_to_run_hash(tuple)
     end
   end
 
@@ -52,8 +49,8 @@ class DatabasePersistence
     query(sql, *run_hash_to_ordered_array(run))
   end
 
-  def delete_run(run_to_delete)
-    query('DELETE FROM runs WHERE id = $1', run_to_delete[:id])
+  def delete_run(run_id)
+    query('DELETE FROM runs WHERE id = $1', run_id)
   end
 
   def upload_runs(user_id, new_runs)
@@ -62,15 +59,12 @@ class DatabasePersistence
       run[:user_id] = user_id
       add_run(run)
     end
-    # @session[:runs] += new_runs
-    # @session[:runs].uniq!
-    # save_runs
   end
 
   def load_user_credentials
     sql = 'SELECT * FROM users'
-    result = @db.exec(sql)
-    result.map.with_object({}) do |tuple, hash|
+    result = query(sql)
+    result.each_with_object({}) do |tuple, hash|
       hash[tuple['name']] = tuple['password']
     end
   end
@@ -83,12 +77,10 @@ class DatabasePersistence
 
   def valid_credentials?(username, password)
     credentials = load_user_credentials
-    if credentials.key?(username)
-      bcrypt_password = BCrypt::Password.new(credentials[username])
-      bcrypt_password == password
-    else
-      false
-    end
+    return false unless credentials.key?(username)
+
+    bcrypt_password = BCrypt::Password.new(credentials[username])
+    bcrypt_password == password
   end
 
   def user_id(username)
@@ -107,7 +99,8 @@ class DatabasePersistence
       distance: tuple['distance'].to_f,
       duration: tuple['duration'],
       date: tuple['date'],
-      time: tuple['time']
+      time: tuple['time'],
+      user_id: tuple['user_id']
     }
   end
 

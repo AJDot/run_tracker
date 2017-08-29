@@ -16,6 +16,7 @@
     <li class="col-12-1"><%= run[:time] %></li>
     <a class="action edit" href="/runs/<%= run[:id] %>/edit">Edit</a>
     <form method="post" action="/runs/<%= run[:id] %>/delete">
+      <input name="name" type="text" hidden value="<%= run[:name] %>">
       <button class="action delete" type="submit">Delete</button>
     </form>
   </ul>
@@ -26,13 +27,14 @@
   <form method="post" action="/upload" enctype="multipart/form-data">
     <button type="submit">Upload</button>
     <input type="file" name="file" accept=".yml">
-    <p class="upload_help">To upload a <i>.yml</i> file, use the following format:<br>
-      ---<br>
-      :name: <i>xyz</i><br>
-      :distance: <i>##.##</i><br>
-      :duration: <i>hh:mm:ss</i><br>
-      :date: <i>yyyy-mm-dd</i><br>
-      :time: <i>hh:mm:ss</i>
+    <p class="upload_help">To upload a <i>.yml</i> file,
+  use the following format:
+  ---
+  -  :name: <i>xyz</i>
+     :distance: <i>'##.##'</i>
+     :duration: <i>'hh:mm:ss'</i>
+     :date: <i>'yyyy-mm-dd'</i>
+     :time: <i>'hh:mm:ss'</i>
     </p>
   </form>
 <% end %>

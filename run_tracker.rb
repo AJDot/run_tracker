@@ -69,6 +69,7 @@ def load_run(id)
 end
 
 def error_for_name(name, id)
+  return 'Must provide a name.' if name.nil?
   all_runs = @storage.all_runs(session[:username])
   if !(1..100).cover? name.size
     'Run name must be between 1 and 100 characters.'
@@ -78,12 +79,12 @@ def error_for_name(name, id)
 end
 
 def error_for_distance(distance)
-  return if distance.to_f > 0.0
-  'Run distance must be greater than 0.'
+  return 'Must provide a distance.' if distance.nil?
+  return 'Run distance must be greater than 0.' if distance.to_f <= 0.0
 end
 
 def error_for_duration(duration)
-  duration ||= '0'
+  return 'Must provide a duration.' if duration.nil?
   durations = duration.split(':').map(&:to_i)
   # matches if duration is in proper format - ##:##:##
   # where each section may contain 1 or 2 digits and the third section
@@ -98,6 +99,7 @@ def error_for_duration(duration)
 end
 
 def error_for_date(date)
+  return 'Must provide a date.' if date.nil?
   # Proper date format yyyy-mm-dd
   year = /\A(?:[12]\d{3})/
   month = /(?:0[1-9]|1[0-2])/
@@ -108,6 +110,7 @@ def error_for_date(date)
 end
 
 def error_for_time(time)
+  return 'Must provide a time.' if time.nil?
   # Proper time format hh:mm:ss
   valid_format = time =~ /\A(?:[01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]\z/
   return if valid_format
@@ -124,29 +127,23 @@ def error_for_add_run(run)
 end
 
 def error_for_upload
-  return 'Must provide a .yml file for upload.' if params[:file].nil?
-  file_location = params[:file][:tempfile].path
-  if File.extname(file_location) != '.yml'
-    'Currently only .yml files are supported.'
-  else
-    new_runs = YAML.load_file(file_location)
-    new_runs.each do |run|
-      error = error_for_add_run(run)
-      return error + %( Fix "#{run[:name]}".) if error
-    end
-    nil
+  if params[:file].nil? ||
+     File.extname(params[:file][:tempfile].path) != '.yml'
+    return 'Must provide a .yml file for upload.'
   end
+
+  file_location = params[:file][:tempfile].path
+  new_runs = YAML.load_file(file_location)
+
+  new_runs.each_with_index do |run, index|
+    error = error_for_add_run(run)
+    return error + " Fix item ##{index + 1} in file." if error
+  end
+  nil
 end
 
 def valid_string?(string, regex)
   !string[regex].nil?
-end
-
-def format_duration(duration)
-  durations = duration.split(':')
-  durations.map! { |d| d.rjust(2, '0') }
-  durations.unshift('00') until durations.size == 3
-  durations.join(':')
 end
 
 helpers do
@@ -165,12 +162,18 @@ helpers do
   def format_distance(distance)
     format('%.2f', distance)
   end
+
+  def format_duration(duration)
+    durations = duration.split(':')
+    durations.map! { |d| d.rjust(2, '0') }
+    durations.unshift('00') until durations.size == 3
+    durations.join(':')
+  end
 end
 
 # view index page - summary info
 get '/' do
   @runs = @storage.all_runs(session[:username])
-  # @runs = session[:runs]
   erb :index
 end
 
@@ -185,11 +188,11 @@ post '/users/signup' do
   password = params[:password]
   password_confirm = params[:password_confirm]
 
-  username_error = error_for_new_username(username)
-  password_error = error_for_new_password(password, password_confirm)
-  if username_error || password_error
+  signup_error = error_for_new_username(username) ||
+                 error_for_new_password(password, password_confirm)
+  if signup_error
     status 422
-    session[:error] = username_error || password_error
+    session[:error] = signup_error
     erb :signup
   else
     @storage.save_user_credentials(username, password)
@@ -297,9 +300,8 @@ end
 # delete run
 post '/runs/:id/delete' do
   require_signed_in_user
-  run_to_delete = load_run(params[:id].to_i)
-  @storage.delete_run(run_to_delete)
-  session[:success] = "#{run_to_delete[:name]} was deleted."
+  @storage.delete_run(params[:id].to_i)
+  session[:success] = "#{params[:name]} was deleted."
   redirect '/runs'
 end
 

@@ -39,17 +39,11 @@ header > h1 > a {
   color: #227722;
 }
 
-/*body header .actions {
-  padding: 20px 0 0 0;
-}*/
-
-/*header .actions * {*/
 .actions > * {
   display: inline-block;
   padding: 5px 20px 5px 5px;
   margin-bottom: 5px;
   font-size: 16px;
-  /*cursor: pointer;*/
   -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
   -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
   -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
@@ -66,6 +60,7 @@ header > h1 > a {
   padding: 0.5em;
   color: transparent;
   background-color: transparent;
+  white-space: pre;
   -webkit-transition: color 200ms ease,
                       background-color 200ms ease;
   -moz-transition:    color 200ms ease,
@@ -291,6 +286,13 @@ main > form .actions {
 .user-status {
   font-style: italic;
   font-size: .9em;
+  display: inline-block;
+  padding: 5px 20px 5px 5px;
+  margin-bottom: 5px;
+  font-size: 16px;
+  -webkit-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -moz-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
+  -o-transition: border-bottom 200ms ease, margin-bottom 200ms ease;
 }
 
 .user-status > a {
